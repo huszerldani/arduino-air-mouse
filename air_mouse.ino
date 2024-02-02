@@ -1,22 +1,20 @@
-//calibrate_air_mouse
 #include <Wire.h>
 #include <MPU6050.h>
 #include <Mouse.h>
-
-int count = 0;
 
 MPU6050 mpu;
 
 int16_t ax, ay, az, gx, gy, gz;
 float moveX, moveY;
-bool buttonState = false;
+
+bool buttonDown = false;
+bool buttonUp = false;
+
+unsigned long buttonDownTime = NULL;
 
 void setup() {
   Serial.begin(9600);
   pinMode(5, INPUT_PULLUP);
-
-  while (!Serial)
-    ;  // unless serial cable is connected, do nothing
 
   delay(1000);
   Wire.begin();
@@ -36,16 +34,38 @@ void loop() {
   checkButton();
   getMovement();
   moveMouse();
+  clickMouse();
 
   delay(20);
 }
 
+void clickMouse() {
+  if (buttonUp) {
+    Mouse.click(MOUSE_LEFT);
+  }
+}
+
 void checkButton() {
-  buttonState = digitalRead(5) == HIGH;
+  if (buttonUp) {
+    buttonUp = false;
+  }
+
+  bool currentButtonDown = digitalRead(5) == HIGH;
+
+  if (buttonDown && !currentButtonDown) {
+    buttonUp = true;
+    buttonDownTime = NULL;
+  }
+
+  if (currentButtonDown && !buttonDownTime) {
+    buttonDownTime = millis();
+  }
+
+  buttonDown = currentButtonDown;
 }
 
 void moveMouse() {
-  if (buttonState) {
+  if (buttonDown && (millis() - buttonDownTime) > 100) {
     Mouse.move(moveX, moveY);
   }
 }
