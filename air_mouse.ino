@@ -1,3 +1,4 @@
+//calibrate_air_mouse
 #include <Wire.h>
 #include <MPU6050.h>
 #include <Mouse.h>
@@ -6,17 +7,17 @@ MPU6050 mpu;
 
 int16_t ax, ay, az, gx, gy, gz;
 float moveX, moveY;
-
-bool buttonDown = false;
+bool buttonState = false;
 bool buttonUp = false;
-
-unsigned long buttonDownTime = NULL;
+bool gyroActive = false;
+bool mousePressed = false;
 
 void setup() {
   Serial.begin(9600);
   pinMode(5, INPUT_PULLUP);
+  pinMode(8, INPUT);
 
-  delay(1000);
+  delay(500);
   Wire.begin();
 
   mpu.initialize();
@@ -31,41 +32,33 @@ void setup() {
 }
 
 void loop() {
-  checkButton();
+  checkButtons();
   getMovement();
   moveMouse();
   clickMouse();
 
-  delay(20);
+  delay(15);
 }
 
 void clickMouse() {
-  if (buttonUp) {
-    Mouse.click(MOUSE_LEFT);
+  if (buttonState && !mousePressed) {
+    Mouse.press(MOUSE_LEFT);
+    mousePressed = true;
+  }
+
+  if (!buttonState && mousePressed) {
+    Mouse.release(MOUSE_LEFT);
+    mousePressed = false;
   }
 }
 
-void checkButton() {
-  if (buttonUp) {
-    buttonUp = false;
-  }
-
-  bool currentButtonDown = digitalRead(5) == HIGH;
-
-  if (buttonDown && !currentButtonDown) {
-    buttonUp = true;
-    buttonDownTime = NULL;
-  }
-
-  if (currentButtonDown && !buttonDownTime) {
-    buttonDownTime = millis();
-  }
-
-  buttonDown = currentButtonDown;
+void checkButtons() {
+  buttonState = digitalRead(5) == LOW;
+  gyroActive = digitalRead(8) == HIGH;
 }
 
 void moveMouse() {
-  if (buttonDown && (millis() - buttonDownTime) > 100) {
+  if (gyroActive) {
     Mouse.move(moveX, moveY);
   }
 }
