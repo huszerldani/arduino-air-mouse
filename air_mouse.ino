@@ -16,7 +16,7 @@ bool mousePressed = false;
 unsigned long buttonDownTime = NULL;
 unsigned long vibrationStart = NULL;
 
-unsigned int vibrationTime = 80;
+unsigned int vibrationTime = 40;
 
 int maxZ = 0;
 
@@ -60,8 +60,6 @@ void processScroll() {
     Mouse.move(0, 0, -(unprocessedMoveY));
     delay(100);
   }
-
-  Serial.println(abs(unprocessedMoveY / 10));
 }
 
 void clickMouse() {
@@ -73,7 +71,6 @@ void clickMouse() {
   if (gyroActive) {
     if (buttonDown && mousePressed && millis() - buttonDownTime > 80) {
       Mouse.press(MOUSE_LEFT);
-      vibrationtart();
       buttonDownTime = NULL;
     }
 
@@ -82,6 +79,7 @@ void clickMouse() {
         vibrationtart();
         Mouse.click(MOUSE_LEFT);
       } else {
+        vibrationtart();
         Mouse.release(MOUSE_LEFT);
       }
 
@@ -115,6 +113,11 @@ void vibrationStop() {
 
 void checkButtons() {
   buttonDown = digitalRead(buttonPin) == LOW;
+
+  if (!gyroActive && digitalRead(switchPin) == HIGH) {
+    vibrationtart();
+  }
+
   gyroActive = digitalRead(switchPin) == HIGH;
 }
 
