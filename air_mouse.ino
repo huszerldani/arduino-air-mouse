@@ -69,7 +69,7 @@ void clickMouse() {
   }
 
   if (gyroActive) {
-    if (buttonDown && mousePressed && millis() - buttonDownTime > 80) {
+    if (buttonDown && mousePressed && millis() - buttonDownTime > 150) {
       Mouse.press(MOUSE_LEFT);
       buttonDownTime = NULL;
     }
@@ -116,6 +116,13 @@ void checkButtons() {
 
   if (!gyroActive && digitalRead(switchPin) == HIGH) {
     vibrationtart();
+    buttonDownTime = NULL;
+    mousePressed = false;
+  }
+
+  if (gyroActive && digitalRead(switchPin) == LOW) {
+    buttonDownTime = NULL;
+    mousePressed = false;
   }
 
   gyroActive = digitalRead(switchPin) == HIGH;
